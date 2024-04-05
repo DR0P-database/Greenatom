@@ -18,10 +18,12 @@ def get_absolute_path(file_name):
 
 
 def run_robot_process(start_number):
-    os.system(
-        ' '.join(['start cmd /c', 'python',
-                 get_absolute_path("robot/main.py"), start_number])
-    )
+    if platform.system() == 'Windows':
+        os.system(' '.join(['start cmd /c', 'python',
+                  get_absolute_path("robot/main.py"), start_number]))
+    elif platform.system() == 'Darwin':
+        os.system(
+            ' '.join(['python', get_absolute_path("robot/main.py"), start_number]))
 
 
 @app.post('/start_robot/{start_number}')
