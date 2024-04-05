@@ -7,11 +7,12 @@ import psutil
 import multiprocessing
 
 app = FastAPI()
-max_concurrent_processes = 1
+max_concurrent_processes = 1  # Limit count crocesses
 semaphore = multiprocessing.Semaphore(max_concurrent_processes)
 
 
-def find_pid_by_script_name(script_name):
+def find_pid(script_name: str) -> int | None:
+    """Get process PID by parametr given when runned process"""
     for proc in psutil.process_iter():
         try:
             if ("Python" in proc.name() or "python" in proc.name()) and script_name in proc.cmdline():
@@ -32,8 +33,8 @@ def kill_process_by_pid(pid):
 
 
 def get_absolute_path(file_name):
+    """Get path to robot exec file"""
     current_directory = os.getcwd()
-    # parent_directory = os.path.abspath(os.path.join(current_directory, "."))
     absolute_path = os.path.join(current_directory, file_name)
     return absolute_path
 
@@ -51,16 +52,17 @@ def run_subprocess(semathore, start_number):
 @app.post('/start_robot/{start_number}')
 @app.post('/start_robot')
 async def start_robot(start_number: int = 0) -> dict:
-
+    # Start process with robot
     multiprocessing.Process(target=run_subprocess,
                             args=(semaphore, start_number, )).start()
+
     return {'message': 'Robot started'}
 
 
 @app.post('/stop_robot')
 async def stop_robot():
-    script_name = get_absolute_path("robot/main.py")
-    pid = find_pid_by_script_name(script_name)
+    script_name = get_absolute_path("robot/main.py")  # get terminal paramentr
+    pid = find_pid(script_name)
     if pid:
         kill_process_by_pid(pid)
         return {'message': 'Robot stopped'}
