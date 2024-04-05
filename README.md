@@ -20,12 +20,12 @@ Description: the start value for start_number is automatically 0.
 
 or 
 
-'>`POST "/start_robot/{start value}"`
+>`POST "/start_robot/{start value}"`
 Description: POST "/start_robot/13" will start from 13.
 
 To ***stop*** robot:
 >`POST "/stop_robot/"`
 
-Any other queries will return errors
+Any other queries will return ***errors***
 
 **Attention:** If you try to start more robots than one, they will queue up and start working only when the process is finished. 
