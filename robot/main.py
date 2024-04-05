@@ -15,5 +15,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    # print('[INFO] Robot started from', sys.argv[1])
     asyncio.run(main())
