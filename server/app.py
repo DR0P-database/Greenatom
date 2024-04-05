@@ -7,6 +7,8 @@ import psutil
 import multiprocessing
 
 app = FastAPI()
+max_concurrent_processes = 1
+semaphore = multiprocessing.Semaphore(max_concurrent_processes)
 
 
 def find_pid_by_script_name(script_name):
@@ -36,13 +38,14 @@ def get_absolute_path(file_name):
     return absolute_path
 
 
-def run_subprocess(start_number):
-    if platform.system() == 'Windows':
-        subprocess.run(['start cmd /c', 'python',
-                        get_absolute_path("robot/main.py"), str(start_number)])
-    elif platform.system() == 'Darwin':
-        subprocess.run(['python', get_absolute_path(
-            "robot/main.py"), str(start_number)])
+def run_subprocess(semathore, start_number):
+    with semathore:
+        if platform.system() == 'Windows':
+            subprocess.run(['start cmd /c', 'python',
+                            get_absolute_path("robot/main.py"), str(start_number)])
+        elif platform.system() == 'Darwin':
+            subprocess.run(['python', get_absolute_path(
+                "robot/main.py"), str(start_number)])
 
 
 @app.post('/start_robot/{start_number}')
@@ -50,7 +53,7 @@ def run_subprocess(start_number):
 async def start_robot(start_number: int = 0) -> dict:
 
     multiprocessing.Process(target=run_subprocess,
-                            args=(start_number, )).start()
+                            args=(semaphore, start_number, )).start()
     return {'message': 'Robot started'}
 
 
