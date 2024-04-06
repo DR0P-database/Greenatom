@@ -1,35 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import platform
 import subprocess
 import uvicorn
 import os
-import psutil
+from multiprocessing.managers import BaseManager
 import multiprocessing
 
 app = FastAPI()
 max_concurrent_processes = 1  # Limit count crocesses
 semaphore = multiprocessing.Semaphore(max_concurrent_processes)
-
-
-def find_pid(script_name: str) -> int | None:
-    """Get process PID by parametr given when runned process"""
-    for proc in psutil.process_iter():
-        try:
-            if ("Python" in proc.name() or "python" in proc.name()) and script_name in proc.cmdline():
-                return proc.pid
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return None
-
-
-def kill_process_by_pid(pid):
-    try:
-        if platform.system() == 'Windows':
-            os.system(f"taskkill /F /PID {pid}")
-        elif platform.system() == 'Darwin':
-            os.kill(pid, 9)
-    except Exception as e:
-        print(f"Failed to terminate process with PID {pid}: {e}")
 
 
 def get_absolute_path(file_name):
@@ -39,7 +18,8 @@ def get_absolute_path(file_name):
     return absolute_path
 
 
-def run_subprocess(semathore, start_number):
+def run_robot_in_new_process(semathore, start_number):
+    """This method should be called from new process"""
     with semathore:
         if platform.system() == 'Windows':
             subprocess.run(['start cmd /c', 'python',
@@ -53,7 +33,7 @@ def run_subprocess(semathore, start_number):
 @app.post('/start_robot')
 async def start_robot(start_number: int = 0) -> dict:
     # Start process with robot
-    multiprocessing.Process(target=run_subprocess,
+    multiprocessing.Process(target=run_robot_in_new_process,
                             args=(semaphore, start_number, )).start()
 
     return {'message': 'Robot started'}
@@ -61,14 +41,18 @@ async def start_robot(start_number: int = 0) -> dict:
 
 @app.post('/stop_robot')
 async def stop_robot():
-    script_name = get_absolute_path("robot/main.py")  # get terminal paramentr
-    pid = find_pid(script_name)
-    if pid:
-        kill_process_by_pid(pid)
-        return {'message': 'Robot stopped'}
+    BaseManager.register('kill_process')
+    manager = BaseManager(address=('127.0.0.1', 4444), authkey=b'abc')
+    try:
+        manager.connect()
+    except:
+        raise HTTPException(
+            status_code=404, detail="not found robots to stop")
 
-    return {'message': 'Robot NOT found'}
-
+    try:  # Raises ex to "recv" when robot stops byself
+        manager.kill_process()
+    except:
+        pass
 
 if __name__ == '__main__':
     uvicorn.run(app)
