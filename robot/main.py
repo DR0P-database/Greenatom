@@ -16,8 +16,8 @@ def kill_process():
 def run_socket():
     BaseManager.register('kill_process', callable=kill_process, )
     manager = BaseManager(address=('127.0.0.1', 4444), authkey=b'abc')
-    print('[INFO] Server for connections started with PID', multiprocessing.current_process(
-    ).name, multiprocessing.current_process().pid)
+    print('[INFO] Server for connections started with PID',
+          multiprocessing.current_process().pid)
     server = manager.get_server()
     server.serve_forever()
 

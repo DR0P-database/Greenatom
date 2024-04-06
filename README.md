@@ -13,6 +13,9 @@ This is an assignment for an apprenticeship at Grinatom. Need to write a robot t
 - The program should store information about the time and duration of each run in a database (SQLite), as well as information about the date from which the countdown was started. FastAPI should have an additional endpoint to output this information.
 
 ### Project Description
+To ***start server*** run server/app.py or run follow commands in terminal
+>`cd server`
+>`uvicorn app:app`
 
 To ***start*** the robot you need to use the following request: 
 >`POST "/start_robot/"`

@@ -14,7 +14,8 @@ semaphore = multiprocessing.Semaphore(max_concurrent_processes)
 def get_absolute_path(file_name):
     """Get path to robot exec file"""
     current_directory = os.getcwd()
-    absolute_path = os.path.join(current_directory, file_name)
+    parent_path = os.path.abspath(os.path.join(current_directory, os.pardir))
+    absolute_path = os.path.join(parent_path, file_name)
     return absolute_path
 
 
@@ -22,11 +23,13 @@ def run_robot_in_new_process(semathore, start_number):
     """This method should be called from new process"""
     with semathore:
         if platform.system() == 'Windows':
-            subprocess.run(['start cmd /c', 'python',
-                            get_absolute_path("robot/main.py"), str(start_number)])
+            subprocess.call(r'start /wait python {} {}'.format(
+                get_absolute_path(r"robot\main.py"), str(start_number)), shell=True)
         elif platform.system() == 'Darwin':
+            # subprocess.call(['open', '-W', '-a', 'Terminal.app', 'python',
+            # '--args', get_absolute_path("robot/main.py"), str(start_number)])
             subprocess.run(['python', get_absolute_path(
-                "robot/main.py"), str(start_number)])
+                "GreenAtomRelease/robot/main.py"), str(start_number)])
 
 
 @app.post('/start_robot/{start_number}')
@@ -53,6 +56,8 @@ async def stop_robot():
         manager.kill_process()
     except:
         pass
+    return {'message': 'success stopped'}
+
 
 if __name__ == '__main__':
     uvicorn.run(app)
