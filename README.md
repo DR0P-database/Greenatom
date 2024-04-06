@@ -15,15 +15,18 @@ This is an assignment for an apprenticeship at Grinatom. Need to write a robot t
 ### Project Description
 To ***start server*** run server/app.py or run follow commands in terminal
 >`cd server`
+>
 >`uvicorn app:app`
 
 To ***start*** the robot you need to use the following request: 
 >`POST "/start_robot/"`
+>
 Description: the start value for start_number is automatically 0.
 
 or 
 
 >`POST "/start_robot/{start value}"`
+>
 Description: POST "/start_robot/13" will start from 13.
 
 To ***stop*** robot:
