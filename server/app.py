@@ -29,7 +29,7 @@ def run_robot_in_new_process(semathore, start_number):
             # subprocess.call(['open', '-W', '-a', 'Terminal.app', 'python',
             # '--args', get_absolute_path("robot/main.py"), str(start_number)])
             subprocess.run(['python', get_absolute_path(
-                "GreenAtomRelease/robot/main.py"), str(start_number)])
+                "robot/main.py"), str(start_number)])
 
 
 @app.post('/start_robot/{start_number}')
